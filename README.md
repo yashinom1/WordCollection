@@ -1,6 +1,9 @@
 # WordCollection　　言葉集めゲーム
 TextAlive App API を用いて作った、曲に合わせて上から流れてくる歌詞を画面下部にある板で受け止めるゲームです
 
+# demo
+[動画(youtube)](https://youtu.be/DDFEuF5H8TU)
+
 ![sample](photo/textaliveapi.jpg)
 
 # 遊び方
