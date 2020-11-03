@@ -54,7 +54,7 @@ function makeposition(){
         pos = center - (box_ra*2 + textspace*(sw/800)) * i;
         textpos.push(pos);
         i++;
-        if(pos < 70)
+        if(pos < 90)
             break;
     }
 
@@ -271,12 +271,12 @@ function animation(delta){//アニメーション
     switch(keyFlag) {
         case 1:
             if(bar.x+bar.long < (sw/2-barspace)){
-                bar.x += 3;
+                bar.x += 3.5;
             }
             break;
         case 2:
             if(bar.x-bar.long > (-sw/2+barspace)){
-                bar.x -= 3;
+                bar.x -= 3.5;
             }
             break;
         default:
@@ -359,8 +359,9 @@ window.addEventListener('load',() =>{
 
     app = new PIXI.Application({
         width: sw,                 // スクリーン(ビュー)横幅 
-        height: sh,                // スクリーン(ビュー)縦幅  
-        backgroundColor: 0x202020,  // 背景色 16進 0xRRGGBB
+        height: sh,                 // スクリーン(ビュー)縦幅 
+        transparent : true,            
+        //backgroundColor: 0x202020,  // 背景色 16進 0xRRGGBB
         autoDensity: true,
         antialias: true
     });
