@@ -5,11 +5,11 @@ let app; //pixi app
 let bar;
 let bar_dx;//pointerとbarとのずれ
 let textlist = [];//描画されているコンテナ
-let textpos = [];
-let pdown = false;
+let textpos = [];//テキストが生成される横の位置
+let pdown = false;//
 let keyFlag = 0;//押しているキーのフラグ
-let prepos;
-let precolor;
+let prepos;//一つ前のcharの位置
+let precolor;//一つ前のcharの色
 
 let c; //歌詞
 let timeoutId = false;
@@ -33,21 +33,26 @@ const colortx =[
     ['0x0009ff','0xb3b5ff'],//blue
     ['0x00f0f0','0xb3fffc'],//bluegreen
     ['0xfff700','0xfffcb3'],//yellow
-    ['0xff7700','0xffd6b3'],//oreange
+    ['0xff7700','0xffd6b3'],//orange
     ['0xff0088','0xffb3db']//pink
 ]
 
+
+/** 
+ *歌詞が作られる位置を決める関数
+ *一定幅ごとに歌詞の横位置を決める
+ */
 function makeposition(){
     let center = sw / 2 - box_ra;
-    textpos.push(center)
+    textpos.push(center);
     
     let i = 1;
     let pos;
     while(1){
         pos = center + (box_ra*2 + textspace*(sw/800)) * i;
-        textpos.push(pos)
+        textpos.push(pos);
         pos = center - (box_ra*2 + textspace*(sw/800)) * i;
-        textpos.push(pos)
+        textpos.push(pos);
         i++;
         if(pos < 70)
             break;
@@ -56,32 +61,33 @@ function makeposition(){
     textpos.sort(function(a,b){
         return a-b;
     })
-    prepos = Math.floor(Math.random()*textpos.length)
+    prepos = Math.floor(Math.random()*textpos.length);
     console.log(textpos)
 }
 
-
+/*歌詞の流れる位置を決める関数*/
 function decpos(){
-    let position = prepos
+    let position = prepos;
         switch(prepos){
             case 0:
-                position += 1
+                position += 1;
                 break;
             case textpos.length-1 :
                 position -= 1;
                 break;
             default :
-                let i = Math.floor(Math.random() *2)
+                let i = Math.floor(Math.random() *2);
                 if(i==0)
                     position += 1;
                 else
                     position -= 1;
                 break;
         }
-    prepos = position
-    return position
+    prepos = position;
+    return position;
 }
 
+/*charが板に当たったときのparticleを作る関数*/
 function makeParticle(x,y,color){
 
     for(i=0;i<2;i++){
@@ -92,7 +98,7 @@ function makeParticle(x,y,color){
         {
             fontSize: num,
             fill: colortx[color][0] 
-        })
+        });
 
         t.x = x-num/2;
         t.y = y-num/2;
@@ -125,26 +131,34 @@ function makeParticle(x,y,color){
     }
 }
 
+/** 
+ *板を作る関数
+ */
 function makebar(){
 
     bar = new PIXI.Graphics()
     .lineStyle(2,'0xffffff',1)
-    .drawRect(sw/2-sw*bar_w,sh-bar_y,sw*2*bar_w,bar_h)
+    .drawRect(sw/2-sw*bar_w,sh-bar_y,sw*2*bar_w,bar_h);
 
     bar.long = sw*bar_w;
     bar.zIndex=500;
 
-    app.stage.addChild(bar)
+    app.stage.addChild(bar);
 
-    let rect = new PIXI.Rectangle(sw/2-sw*bar_w,sh-bar_y,sw*2*bar_w,sh-bar_y)
+    let rect = new PIXI.Rectangle(sw/2-sw*bar_w,sh-bar_y,sw*2*bar_w,sh-bar_y);
     bar.hitArea = rect;
     
     bar.interactive = true;
     bar.buttonMode = true;
-    bar.on('pointerdown',pointdown)
-    bar.on('pointermove',pointmove)
+    bar.on('pointerdown',pointdown);
+    bar.on('pointermove',pointmove);
 }  
 
+/**
+ * charを囲む図形を描く
+ * @param type 形（0:円、1:ダイヤ、2:六角形)
+ * @param color 色
+ */
 function makebox(type,color){
     let box;
     switch(type) {
@@ -161,7 +175,7 @@ function makebox(type,color){
                 box_x,box_y-box_ra,
                 box_x-box_ra,box_y,
                 box_x,box_y+box_ra
-            ])
+            ]);
             break;
         case 2:
             box = new PIXI.Graphics()
@@ -173,19 +187,26 @@ function makebox(type,color){
                 box_x+box_ra*Math.cos(Math.PI*7/6),box_y+box_ra*Math.sin(Math.PI*7/6),
                 box_x,box_y-box_ra,
                 box_x+box_ra*Math.cos(Math.PI*11/6),box_y+box_ra*Math.sin(Math.PI*11/6)
-            ])
+            ]);
             break;
     
         default:
             return false;
     }
     box.zIndex = 100;
-    //console.log(box)
+    
     return box;
 }
 
+/**
+ * charのグラデーションを作る
+ * @param char 歌詞
+ * @param f_wo 単語のはじめの文字かどうか
+ */
 function maketext(char,f_wo){
     let type;
+
+    //単語の初めの文字なら色を変える
     if(f_wo){
         type = Math.floor(Math.random()*6);
         precolor = type;
@@ -206,36 +227,42 @@ function maketext(char,f_wo){
             1
         ],
         fontSize: f_size
-    })
+    });
 
-    let text = new PIXI.Text(char,textstyle)
+    let text = new PIXI.Text(char,textstyle);
     return text;
 }
 
+/**
+ * appに表示される歌詞のコンテナを作る
+ * @param char 発声される文字
+ * @param f_wo 単語のはじめの文字であるかどうか
+ * @param starttime 発声される文字の発声位置
+ */
 function makechar(char,f_wo,starttime) {
     
     //コンテナ作成
-    let sampleContainer = new PIXI.Container();
-    let position = decpos()
-    console.log("char1")
-    sampleContainer.x = textpos[position];//ランダム
-    sampleContainer.y = sh - text_h;
-    sampleContainer.starttime = starttime
-    sampleContainer.b_type= Math.floor(Math.random()*3)
+    let charContainer = new PIXI.Container();
+    let position = decpos();
+
+    charContainer.x = textpos[position];
+    charContainer.y = sh - text_h;
+    charContainer.starttime = starttime;
+    charContainer.b_type= Math.floor(Math.random()*3);
     
-    sampleContainer.flag = true;//パーティクル
-    sampleContainer.b_over = true;
+    charContainer.flag = true;//パーティクル用
+    charContainer.b_over = true;//barの上に文字があるかどうか
     
-    app.stage.addChild(sampleContainer);
+    app.stage.addChild(charContainer);
 
-    let text = maketext(char,f_wo)
-    sampleContainer.c_type = precolor
-    let box = makebox(sampleContainer.b_type,sampleContainer.c_type)
+    let text = maketext(char,f_wo);
+    charContainer.c_type = precolor;
+    let box = makebox(charContainer.b_type,charContainer.c_type);
 
-    sampleContainer.addChild(box);
-    sampleContainer.addChild(text);
+    charContainer.addChild(box);
+    charContainer.addChild(text);
 
-    textlist.push(sampleContainer);
+    textlist.push(charContainer);
 
 }
 
@@ -256,30 +283,35 @@ function animation(delta){//アニメーション
             break;
     }
 
-    let bleft = sw/2+bar.x-bar.long
-    let bright = sw/2+bar.x+bar.long
+    let bleft = sw/2+bar.x-bar.long;
+    let bright = sw/2+bar.x+bar.long;
 
     for(i=0;i<textlist.length;i++){
-        textlist[i].y += textspeed*delta
+        textlist[i].y += textspeed*delta;
 
+        //文字の発声時間を超えたとき
         if(/*textlist[i].y+box_y*2 > sh-bar_y*/ textlist[i].starttime < player.timer.position){
+            //文字がbarの横幅を超えないとき
             if(textlist[i].x+box_x>=bleft && textlist[i].x-box_x<=bright){
+                //パーティクルの関数を呼んでなくて、barの位置より上に文字がある時
                 if(textlist[i].flag && textlist[i].b_over){
                     textlist[i].flag =false;
                     let x = textlist[i].x
                     let color = textlist[i].c_type;
-                    app.stage.removeChild(textlist[i])
-                    textlist.splice(i,1)
-                    makeParticle(x,sh-bar_y,color)
+                    app.stage.removeChild(textlist[i]);
+                    textlist.splice(i,1);
+                    makeParticle(x,sh-bar_y,color);
                     continue;
                 }
             }
             textlist[i].b_over = false;
         }
     
+        /*文字の高さがappの縦幅を超えたとき
+         (appから見えなくなった時に文字を削除する)*/
         if(textlist[i].y+box_y*2 > sh+100){
-            app.stage.removeChild(textlist[i])
-            textlist.splice(i,1)
+            app.stage.removeChild(textlist[i]);
+            textlist.splice(i,1);
         }
     }
 
@@ -300,22 +332,25 @@ function animation(delta){//アニメーション
     }
 }
 
+//barがタッチされたときに呼ばれる
 function pointdown(event){
-    pdown = true
-    bar_dx = event.data.getLocalPosition(app.stage).x - (bar.x +sw/2)
+    pdown = true;
+    bar_dx = event.data.getLocalPosition(app.stage).x - (bar.x +sw/2);
 }
 
+//barがタッチされて動かされているとき
 function pointmove(event){
     if(pdown){
-        let position = event.data.getLocalPosition(app.stage)
+        let position = event.data.getLocalPosition(app.stage);
         if((position.x + bar.long - bar_dx < sw - barspace) && (position.x - bar.long - bar_dx > barspace)){
-            bar.x = position.x -sw/2 - bar_dx
+            bar.x = position.x -sw/2 - bar_dx;
         }
     }
 }
 
+//barのタッチが解除されたときに呼ばれる
 function pointup(event){
-    pdown = false
+    pdown = false;
 }
 
 window.addEventListener('load',() =>{
@@ -334,55 +369,61 @@ window.addEventListener('load',() =>{
     el.appendChild(app.view);
     
     app.stage.sortableChildren = true;
-    app.ticker.add(delta => {animation(delta)})
+    app.ticker.add(delta => {animation(delta)});
     
-    makebar()
-    makeposition()
+    makebar();
+    makeposition();
 })
 
+/** 
+ * 画面リサイズ時に呼ばれる
+ * 画面サイズを取得してステージを作る
+ * */
 function onresize(){
     player.requestPause();
     if(timeoutId !== false){
-        clearTimeout( timeoutId ) 
+        clearTimeout( timeoutId );
     }
 
     timeoutId = setTimeout(function(){
         sw = document.body.clientWidth;
         sh = document.documentElement.clientHeight - header;
         
-        particles = []
-        textlist = []
-        textpos = []
+        particles = [];//パーティクル、テキストを初期化
+        textlist = [];
+        textpos = [];
     
         console.log("resize1")
         
         while(app.stage.children[0]){
-            app.stage.removeChild(app.stage.children[0])
+            app.stage.removeChild(app.stage.children[0]);
         }
 
         app.renderer.resize(sw,sh);
-        makeposition()
-        makebar()
+        makeposition();
+        makebar();
 
     }, 500);
 }
 
+/*appの子要素(charcontainer)を消す*/
 function removechildren(){
-    textlist = []
-    while(app.stage.children[1]){
-        app.stage.removeChild(app.stage.children[0])
+    textlist = [];
+    while(app.stage.children[1]){//表示されている板は残す
+        app.stage.removeChild(app.stage.children[0]);
     }
-    if(app.stage.children[0] == null)
-        makebar()
+    if(app.stage.children[0] == null){
+        makebar();
+    }
 }  
 
 window.addEventListener("keydown", (event) => { this.downHandler(event) },false);
 window.addEventListener("keyup", (event) => { this.upHandler(event) },false);
 window.addEventListener("pointerup", (event) => { this.pointup(event) },false);
-window.addEventListener('resize',() => {this.onresize()},false)
+window.addEventListener('resize',() => {this.onresize()},false);
 
+/*キーが押されたときに呼ばれる*/
 function downHandler(event) {
-
     switch(event.key) {
       case 'ArrowRight':
         keyFlag = 1;
@@ -390,15 +431,10 @@ function downHandler(event) {
       case 'ArrowLeft':
         keyFlag = 2;
         break;
-      /*case 'ArrowDown':
-        keyFlag = 3;
-        break;
-      case 'ArrowUp':
-        keyFlag = 4;
-        break;*/
     }
 }
 
+/*キーが離された時に呼ばれる*/
 function upHandler(event) {
     keyFlag = 0;
 }
@@ -439,7 +475,9 @@ function onAppReady(app){
       // - 楽曲: http://www.youtube.com/watch?v=ygY2qObZv24
       // - 歌詞: https://piapro.jp/t/PLR7
       // player.createFromSongUrl("http://www.youtube.com/watch?v=ygY2qObZv24");
-
+    }
+    else{
+        document.querySelector("#control").className = "disabled";
     }
     /*if (!app.songUrl) {
         player.createFromSongUrl("http://www.youtube.com/watch?v=XSLhsjepelI");
@@ -447,8 +485,9 @@ function onAppReady(app){
 }
 
 function onAppMediaChange(){
-    overlay.className=""
-    control.className=""
+    overlay.className="";
+    control.className="";
+    setChar();
 }
 
 function onTimerReady(){
@@ -458,8 +497,8 @@ function onTimerReady(){
 }
 
 function onTimeUpdate(position){
-    if (c && c.startTime > position + 2000) {
-        setChar()
+    if (c && c.startTime > position + 2000) {//巻き戻された時
+        setChar();
     }
 
     let f_wo = false;
@@ -471,9 +510,8 @@ function onTimeUpdate(position){
                     f_wo = true;
                 }
                 console.log(current.text)
-                let starttime = current.startTime
-                console.log(starttime)
-                makechar(current._data.char,f_wo,starttime)
+                let starttime = current.startTime;
+                makechar(current._data.char,f_wo,starttime);
                 c = current;
             }
         }
@@ -482,36 +520,37 @@ function onTimeUpdate(position){
 }
 
 function onPlay(){
-    overlay.className = "disabled"
+    overlay.className = "disabled";
     const a = document.querySelector('#play');
     a.classList.replace('fa-play-circle','fa-pause-circle');
 }
 
 function onPause(){
-    const a = document.querySelector('#play')
+    const a = document.querySelector('#play');
     a.classList.replace('fa-pause-circle','fa-play-circle')
-    setChar()
+    setChar();
 }
 
 function onStop(){
 }
 
+/* 再生位置のcharを探す関数*/
 function setChar(){
-    control.className=""
-    c = null
+    control.className="";
+    c = null;
     let c_pre;
-    let d = player.video.firstChar
+    let d = player.video.firstChar;
     console.log(d)
     while(d && d.startTime < player.timer.position + 1600){
-        c_pre = d
-        d = d.next
-        console.log('resetchar1')
+        c_pre = d;
+        d = d.next;
+        console.log('resetchar1');
     }
-    c = c_pre
-    control.className="able"
-    removechildren()
+    c = c_pre;//再生位置の一つ前の歌詞を今の歌詞として代入
+    control.className="able";
+    removechildren();
     
-    console.log('resetchar')
+    console.log('resetchar');
 }
 
 document.getElementById('play').addEventListener("click",(e) => {
@@ -532,7 +571,7 @@ document.getElementById('stop').addEventListener("click",(e) =>{
     if(player){
         player.requestStop();
         setTimeout(function(){
-            setChar()
+            setChar();
         },200)
     }
     return false;
