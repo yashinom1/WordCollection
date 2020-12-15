@@ -1,0 +1,123 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    background: black;
+    color: #000;
+    overflow : hidden;
+    margin :0;
+}
+
+#header{
+    height :120px;
+    background-color: rgb(131, 226, 182);
+    display: flex;
+    align-items: center; 
+    z-index : 100;
+}
+
+#control{
+    pointer-events: none;
+    display: flex;
+}
+
+#control.able{ 
+    pointer-events: auto;
+}
+
+#control > i{
+    padding : 5px;
+}
+
+#overlay{
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    position: absolute;
+}
+
+#overlay{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    pointer-events: none;
+}
+
+#overlay > div > p{
+    font-family: fantasy;
+    text-align: center; 
+}
+
+
+.disabled{
+    display: none;
+}
+
+.indication{
+    display:block !important;
+}
+
+#loading p{
+    color:white;
+    font-size: 40px;
+    padding-top: 10vh;
+}
+
+#start{
+    display: none;
+    margin-left: auto;
+    margin-right: auto;
+    width:80%;
+    height: 80%;
+
+}
+
+#start p{
+    padding-top: 8vh;
+    font-size: 30px;
+    color: white;
+}
+
+#media {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: rgba(0,0,0,0,2)
+}
+
+#app{
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(black,#303030);
+    overflow: hidden;
+    z-index : 30;
+}
+
+#score{
+    position:absolute;
+    right: 20px;
+    background-color: transparent;
+}
+
+#score p{
+    font-size: 15px;
+    color: white;
+}
+
+#media > div > div{
+    width: 120px !important;
+    height: 68px !important;
+}
+
+#media > div >div.textalive-banner  {
+    max-width: none !important;
+    width: 100% !important;
+    height: 30px !important;
+    letter-spacing: 0;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#media > div > div > a > div{
+    width : 20px !important
+}
+
