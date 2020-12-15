@@ -4,7 +4,7 @@ TextAlive App API を用いて作った、曲に合わせて上から流れて�
 # demo
 [動画(youtube)](https://youtu.be/DDFEuF5H8TU)
 
-![sample](photo/textaliveapi.jpg)
+![sample](photo/.jpg)
 
 # 遊び方
 画面下部にある板はパソコンでは←→のキー押して、スマホなどの画面にタッチできるものであれば板または板の下の部分を押して左右に動かすことによって板を左右に動かすことができます。
