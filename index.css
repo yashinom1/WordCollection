@@ -92,6 +92,17 @@ html, body {
     z-index : 30;
 }
 
+#score{
+    position:absolute;
+    right: 20px;
+    background-color: transparent;
+}
+
+#score p{
+    font-size: 15px;
+    color: white;
+}
+
 #media > div > div{
     width: 120px !important;
     height: 68px !important;

@@ -12,7 +12,10 @@ let prepos;//一つ前のcharの位置
 let precolor;//一つ前のcharの色
 
 let c; //歌詞
+let scorea = 0;
+let scorep = 0;
 let timeoutId = false;
+let pauseflag = false;
 
 //初期値
 const bar_y = 150;//barの高さ
@@ -37,6 +40,11 @@ const colortx =[
     ['0xff0088','0xffb3db']//pink
 ]
 
+
+function makescore(){
+    console.log("score")
+    document.querySelector("#score p").textContent = scorep + " / " + scorea + " 文字";
+}
 
 /** 
  *歌詞が作られる位置を決める関数
@@ -268,50 +276,55 @@ function makechar(char,f_wo,starttime) {
 
 function animation(delta){//アニメーション
 
-    switch(keyFlag) {
-        case 1:
-            if(bar.x+bar.long < (sw/2-barspace)){
-                bar.x += 3.5;
-            }
-            break;
-        case 2:
-            if(bar.x-bar.long > (-sw/2+barspace)){
-                bar.x -= 3.5;
-            }
-            break;
-        default:
-            break;
-    }
-
-    let bleft = sw/2+bar.x-bar.long;
-    let bright = sw/2+bar.x+bar.long;
-
-    for(i=0;i<textlist.length;i++){
-        textlist[i].y += textspeed*delta;
-
-        //文字の発声時間を超えたとき
-        if(/*textlist[i].y+box_y*2 > sh-bar_y*/ textlist[i].starttime < player.timer.position){
-            //文字がbarの横幅を超えないとき
-            if(textlist[i].x+box_x>=bleft && textlist[i].x-box_x<=bright){
-                //パーティクルの関数を呼んでなくて、barの位置より上に文字がある時
-                if(textlist[i].flag && textlist[i].b_over){
-                    textlist[i].flag =false;
-                    let x = textlist[i].x
-                    let color = textlist[i].c_type;
-                    app.stage.removeChild(textlist[i]);
-                    textlist.splice(i,1);
-                    makeParticle(x,sh-bar_y,color);
-                    continue;
+    if(pauseflag==false){
+        switch(keyFlag) {
+            case 1:
+                if(bar.x+bar.long < (sw/2-barspace)){
+                    bar.x += 3.5;
                 }
-            }
-            textlist[i].b_over = false;
+                break;
+            case 2:
+                if(bar.x-bar.long > (-sw/2+barspace)){
+                    bar.x -= 3.5;
+                }
+                break;
+            default:
+                break;
         }
-    
-        /*文字の高さがappの縦幅を超えたとき
-         (appから見えなくなった時に文字を削除する)*/
-        if(textlist[i].y+box_y*2 > sh+100){
-            app.stage.removeChild(textlist[i]);
-            textlist.splice(i,1);
+
+        let bleft = sw/2+bar.x-bar.long;
+        let bright = sw/2+bar.x+bar.long;
+
+        for(i=0;i<textlist.length;i++){
+            textlist[i].y += textspeed*delta;
+
+            //文字の発声時間を超えたとき
+            if(/*textlist[i].y+box_y*2 > sh-bar_y*/textlist[i].starttime < player.timer.position && player.timer.position < 1000000){
+                //文字がbarの横幅を超えないとき
+                console.log(player.timer.position)
+                if(textlist[i].x+box_x>=bleft && textlist[i].x-box_x<=bright){
+                    //パーティクルの関数を呼んでなくて、barの位置より上に文字がある時
+                    if(textlist[i].flag && textlist[i].b_over){
+                        textlist[i].flag =false;
+                        let x = textlist[i].x
+                        let color = textlist[i].c_type;
+                        app.stage.removeChild(textlist[i]);
+                        textlist.splice(i,1);
+                        makeParticle(x,sh-bar_y,color);
+                        scorep++;
+                        makescore();
+                        continue;
+                    }
+                }
+                textlist[i].b_over = false;
+            }
+        
+            /*文字の高さがappの縦幅を超えたとき
+            (appから見えなくなった時に文字を削除する)*/
+            if(textlist[i].y+box_y*2 > sh+100){
+                app.stage.removeChild(textlist[i]);
+                textlist.splice(i,1);
+            }
         }
     }
 
@@ -449,7 +462,7 @@ const player = new Player({
 player.addListener({
     onAppReady,
     onAppMediaChange,
-    //onVideoReady,
+    onVideoReady,
     onTimerReady,
     onTimeUpdate,
     onPlay,
@@ -491,6 +504,21 @@ function onAppMediaChange(){
     setChar();
 }
 
+function onVideoReady(v){
+    if(v.firstChar){
+        let d = player.video.firstChar;
+        while(d){
+            if(d.parent.pos !== 'S'){
+                scorea++;
+            }
+            d = d.next;
+        }
+    }
+    console.log(scorea)
+    document.querySelector("#score p").textContent = "moji";
+    makescore();
+}
+
 function onTimerReady(){
     loading.className = "disabled"
     start.className = "indication"
@@ -529,10 +557,11 @@ function onPlay(){
 function onPause(){
     const a = document.querySelector('#play');
     a.classList.replace('fa-pause-circle','fa-play-circle')
-    setChar();
+    //setChar();
 }
 
 function onStop(){
+    
 }
 
 /* 再生位置のcharを探す関数*/
@@ -558,9 +587,11 @@ document.getElementById('play').addEventListener("click",(e) => {
     e.preventDefault();
     if(player){
         if(player.isPlaying){
+            pauseflag = true;
             player.requestPause();
         }else{
             player.requestPlay();
+            pauseflag = false;
         }
     }
     return false;
@@ -569,6 +600,8 @@ document.getElementById('play').addEventListener("click",(e) => {
 document.getElementById('stop').addEventListener("click",(e) =>{
     e.preventDefault();
     console.log('click')
+    scorep = 0;
+    makescore();
     if(player){
         player.requestStop();
         setTimeout(function(){
