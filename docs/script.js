@@ -12,7 +12,7 @@ let prepos;//一つ前のcharの位置
 let precolor;//一つ前のcharの色
 
 let c; //歌詞
-let scorea = 0;
+let scoreh = 0;
 let scorep = 0;
 let timeoutId = false;
 let pauseflag = false;
@@ -43,7 +43,7 @@ const colortx =[
 
 function makescore(){
     console.log("score")
-    document.querySelector("#score p").textContent = scorep + " / " + scorea + " 文字";
+    document.querySelector("#score p").textContent = "score : " + scorep*100 ;
 }
 
 /** 
@@ -353,7 +353,7 @@ function pointdown(event){
 
 //barがタッチされて動かされているとき
 function pointmove(event){
-    if(pdown){
+    if(pdown&&(pauseflag==0)){
         let position = event.data.getLocalPosition(app.stage);
         if((position.x + bar.long - bar_dx < sw - barspace) && (position.x - bar.long - bar_dx > barspace)){
             bar.x = position.x -sw/2 - bar_dx;
@@ -505,7 +505,7 @@ function onAppMediaChange(){
 }
 
 function onVideoReady(v){
-    if(v.firstChar){
+    /*if(v.firstChar){
         let d = player.video.firstChar;
         while(d){
             if(d.parent.pos !== 'S'){
@@ -513,9 +513,8 @@ function onVideoReady(v){
             }
             d = d.next;
         }
-    }
-    console.log(scorea)
-    document.querySelector("#score p").textContent = "moji";
+    }*/
+
     makescore();
 }
 
@@ -526,9 +525,9 @@ function onTimerReady(){
 }
 
 function onTimeUpdate(position){
-    if (c && c.startTime > position + 2000) {//巻き戻された時
+    /*if (c && c.startTime > position + 2000) {//巻き戻された時
         setChar();
-    }
+    }*/
 
     let f_wo = false;
     let current = c || player.video.firstChar;
